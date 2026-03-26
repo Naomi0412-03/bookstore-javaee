@@ -47,7 +47,7 @@ bookstore/
 │ ├── application.yml #配置文件
 │ └── mapper/ # MyBatis XML映射文件
 ├── src/main/webapp/
-  └── WEB-INF/views/ #JSP视图文件
+└── WEB-INF/views/ #JSP视图文件
 
 
 ##实现步骤
@@ -84,42 +84,42 @@ bookstore/
 ###用户注册（使用MD5密码加密）
 //UserServiceImpl.java
 public User register(User user){
-  //检查用户是否已经存在
-  if(UserMapper.findByUsername(user.getUserName())!=null){
-    throw new RuntimeException("用户名已存在");
-  }
-   //MD5加密   
-  String encryptedPassword=DigestUtil.md5DigestAsHex(
-  user.getPassword().getBytes());
-  user.setPassword(encryptedPassword);
-  user.setCreatedAt(new Data());
-  userMapper.insert(user);
-  return user;
-  }
+//检查用户是否已经存在
+if(UserMapper.findByUsername(user.getUserName())!=null){
+throw new RuntimeException("用户名已存在");
+}
+//MD5加密   
+String encryptedPassword=DigestUtil.md5DigestAsHex(
+user.getPassword().getBytes());
+user.setPassword(encryptedPassword);
+user.setCreatedAt(new Data());
+userMapper.insert(user);
+return user;
+}
 
 ###购物车添加商品
 // CartServiceImpl.java
 public Cart addToCart(Integer userId, Integer bookId, Integer quantity) {
-    // 检查是否已在购物车
-    Cart existingCart = cartMapper.findByUserIdAndBookId(userId, bookId);
-    if (existingCart != null) {
-        // 已存在则更新数量
-        int newQuantity = existingCart.getQuantity() + quantity;
-        cartMapper.updateQuantity(existingCart.getId(), newQuantity);
-        existingCart.setQuantity(newQuantity);
-        return existingCart;
-    } else {
-        // 不存在则新增
-        Cart cart = new Cart();
-        cart.setUserId(userId);
-        cart.setBookId(bookId);
-        cart.setQuantity(quantity);
-        cart.setSelected(true);
-        cartMapper.insert(cart);
-        return cart;
-    }
+// 检查是否已在购物车
+Cart existingCart = cartMapper.findByUserIdAndBookId(userId, bookId);
+if (existingCart != null) {
+// 已存在则更新数量
+int newQuantity = existingCart.getQuantity() + quantity;
+cartMapper.updateQuantity(existingCart.getId(), newQuantity);
+existingCart.setQuantity(newQuantity);
+return existingCart;
+} else {
+// 不存在则新增
+Cart cart = new Cart();
+cart.setUserId(userId);
+cart.setBookId(bookId);
+cart.setQuantity(quantity);
+cart.setSelected(true);
+cartMapper.insert(cart);
+return cart;
 }
-                
+}
+
 ##待优化
 -完善页面跳转逻辑
 -在后续的添加中可以添加管理员后台功能

@@ -1,0 +1,836 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>线上书店</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', 'Microsoft YaHei', sans-serif;
+        }
+
+        body {
+            background-color: #f8f9fa;
+            color: #333;
+            line-height: 1.6;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 20px;
+        }
+
+        /* 头部样式 */
+        header {
+            background-color: #2c3e50;
+            color: white;
+            padding: 20px 0;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .header-content {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .logo {
+            font-size: 28px;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+        }
+
+        .logo i {
+            color: #3498db;
+            margin-right: 10px;
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 25px;
+        }
+
+        .nav-links a {
+            color: white;
+            text-decoration: none;
+            font-weight: 500;
+            transition: color 0.3s;
+            font-size: 17px;
+        }
+
+        .nav-links a:hover {
+            color: #3498db;
+        }
+
+        /* 搜索区域 */
+        .search-section {
+            padding: 40px 0 20px;
+            background-color: #fff;
+            border-bottom: 1px solid #eee;
+        }
+
+        .search-section h1 {
+            text-align: center;
+            margin-bottom: 25px;
+            color: #2c3e50;
+            font-size: 32px;
+        }
+
+        .search-box {
+            display: flex;
+            max-width: 800px;
+            margin: 0 auto 30px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.08);
+            border-radius: 50px;
+            overflow: hidden;
+        }
+
+        .search-input {
+            flex-grow: 1;
+            padding: 18px 25px;
+            border: none;
+            font-size: 16px;
+            background-color: #fff;
+        }
+
+        .search-input:focus {
+            outline: none;
+        }
+
+        .search-btn {
+            background-color: #3498db;
+            color: white;
+            border: none;
+            padding: 0 35px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: 600;
+            transition: background-color 0.3s;
+        }
+
+        .search-btn:hover {
+            background-color: #2980b9;
+        }
+
+        .search-tips {
+            text-align: center;
+            color: #7f8c8d;
+            font-size: 14px;
+            margin-top: 10px;
+        }
+
+        /* 图书列表 */
+        .books-section {
+            padding: 40px 0;
+        }
+
+        .section-title {
+            margin-bottom: 30px;
+            color: #2c3e50;
+            font-size: 28px;
+            display: flex;
+            align-items: center;
+        }
+
+        .section-title i {
+            margin-right: 10px;
+            color: #3498db;
+        }
+
+        .books-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 30px;
+            margin-bottom: 40px;
+        }
+
+        .book-card {
+            background-color: white;
+            border-radius: 10px;
+            overflow: hidden;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
+            transition: transform 0.3s, box-shadow 0.3s;
+            display: flex;
+            flex-direction: column;
+            height: 100%;
+        }
+
+        .book-card:hover {
+            transform: translateY(-10px);
+            box-shadow: 0 15px 30px rgba(0, 0, 0, 0.1);
+        }
+
+        .book-cover {
+            height: 250px;
+            overflow: hidden;
+            position: relative;
+            background-color: #f5f5f5;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .book-cover img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            transition: transform 0.5s;
+        }
+
+        .book-card:hover .book-cover img {
+            transform: scale(1.05);
+        }
+
+        .book-info {
+            padding: 20px;
+            flex-grow: 1;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .book-title {
+            font-size: 18px;
+            font-weight: 700;
+            margin-bottom: 8px;
+            color: #2c3e50;
+            line-height: 1.3;
+        }
+
+        .book-author {
+            color: #7f8c8d;
+            margin-bottom: 10px;
+            font-size: 15px;
+        }
+
+        .book-isbn {
+            color: #95a5a6;
+            font-size: 13px;
+            margin-bottom: 15px;
+        }
+
+        .book-description {
+            color: #555;
+            font-size: 14px;
+            line-height: 1.5;
+            margin-bottom: 20px;
+            flex-grow: 1;
+            display: -webkit-box;
+            -webkit-line-clamp: 3;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .book-footer {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .book-price {
+            font-size: 20px;
+            font-weight: 700;
+            color: #e74c3c;
+        }
+
+        .buy-btn {
+            background-color: #2ecc71;
+            color: white;
+            border: none;
+            padding: 8px 18px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: background-color 0.3s;
+        }
+
+        .buy-btn:hover {
+            background-color: #27ae60;
+        }
+
+        /* 分类筛选 */
+        .categories {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-bottom: 30px;
+        }
+
+        .category-btn {
+            background-color: #ecf0f1;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 30px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: all 0.3s;
+        }
+
+        .category-btn.active, .category-btn:hover {
+            background-color: #3498db;
+            color: white;
+        }
+
+        /* 页脚 */
+        footer {
+            background-color: #2c3e50;
+            color: #ecf0f1;
+            padding: 40px 0 20px;
+            margin-top: 40px;
+        }
+
+        .footer-content {
+            display: flex;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 40px;
+            margin-bottom: 30px;
+        }
+
+        .footer-section {
+            flex: 1;
+            min-width: 250px;
+        }
+
+        .footer-section h3 {
+            color: white;
+            margin-bottom: 20px;
+            font-size: 20px;
+        }
+
+        .footer-links {
+            list-style: none;
+        }
+
+        .footer-links li {
+            margin-bottom: 10px;
+        }
+
+        .footer-links a {
+            color: #bdc3c7;
+            text-decoration: none;
+            transition: color 0.3s;
+        }
+
+        .footer-links a:hover {
+            color: #3498db;
+        }
+
+        .copyright {
+            text-align: center;
+            padding-top: 20px;
+            border-top: 1px solid #34495e;
+            color: #95a5a6;
+            font-size: 14px;
+        }
+
+        /* 响应式设计 */
+        @media (max-width: 768px) {
+            .header-content {
+                flex-direction: column;
+                gap: 15px;
+            }
+
+            .nav-links {
+                gap: 15px;
+            }
+
+            .books-grid {
+                grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+                gap: 20px;
+            }
+
+            .search-box {
+                flex-direction: column;
+                border-radius: 10px;
+            }
+
+            .search-input, .search-btn {
+                width: 100%;
+                border-radius: 0;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .books-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        /* 无结果提示 */
+        .no-results {
+            text-align: center;
+            padding: 60px 20px;
+            background-color: white;
+            border-radius: 10px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
+            margin-top: 20px;
+        }
+
+        .no-results i {
+            font-size: 60px;
+            color: #bdc3c7;
+            margin-bottom: 20px;
+        }
+
+        .no-results h3 {
+            color: #7f8c8d;
+            margin-bottom: 10px;
+        }
+
+        /* 图书封面加载失败的样式 */
+        .cover-placeholder {
+            width: 100%;
+            height: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            font-size: 14px;
+            text-align: center;
+            padding: 15px;
+        }
+
+        /* 评分样式 */
+        .book-rating {
+            display: flex;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+
+        .stars {
+            color: #f39c12;
+            margin-right: 5px;
+        }
+
+        .rating-value {
+            color: #7f8c8d;
+            font-size: 14px;
+        }
+
+        /* 图书标签 */
+        .book-tags {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 5px;
+            margin-bottom: 15px;
+        }
+
+        .tag {
+            background-color: #e8f4fc;
+            color: #3498db;
+            padding: 3px 8px;
+            border-radius: 12px;
+            font-size: 12px;
+        }
+    </style>
+</head>
+<body>
+<!-- 头部导航 -->
+<header>
+    <div class="container">
+        <div class="header-content">
+            <div class="logo">
+                <i class="fas fa-book"></i>
+                线上书店
+            </div>
+            <div class="nav-links">
+                <a href="http://localhost:8080/"><i class="fas fa-home"></i> 首页</a>
+                <a href="http://localhost:8080/cart"><i class="fas fa-shopping-cart"></i> 购物车</a>
+                <a href="http://localhost:8080/orders"><i class="fas fa-list"></i> 我的订单</a>
+            </div>
+        </div>
+    </div>
+</header>
+
+<!-- 搜索区域 -->
+<section class="search-section">
+    <div class="container">
+        <h1>探索知识的海洋</h1>
+        <div class="search-box">
+            <input type="text" class="search-input" placeholder="搜索图书标题、作者或ISBN..." id="searchInput">
+            <button class="search-btn" id="searchBtn">
+                <i class="fas fa-search"></i> 搜索
+            </button>
+        </div>
+    </div>
+</section>
+
+<!-- 图书分类筛选 -->
+<section class="books-section">
+    <div class="container">
+        <div class="categories">
+            <button class="category-btn active" data-category="all">全部图书</button>
+            <button class="category-btn" data-category="fiction">小说文学</button>
+            <button class="category-btn" data-category="tech">科技编程</button>
+            <button class="category-btn" data-category="history">历史人文</button>
+            <button class="category-btn" data-category="business">经济管理</button>
+            <button class="category-btn" data-category="selfhelp">自我提升</button>
+        </div>
+
+        <div class="section-title">
+            <i class="fas fa-book"></i> 图书列表
+        </div>
+
+        <!-- 图书列表容器 -->
+        <div class="books-grid" id="booksContainer">
+            <!-- 图书卡片将通过JavaScript动态生成 -->
+        </div>
+
+        <!-- 无结果提示（初始隐藏） -->
+        <div class="no-results" id="noResults" style="display: none;">
+            <i class="fas fa-book-open"></i>
+            <h3>暂无相关图书数据</h3>
+            <p>尝试使用其他关键词搜索或浏览其他分类</p>
+        </div>
+    </div>
+</section>
+
+<!-- 页脚 -->
+<footer>
+    <div class="container">
+        <div class="footer-content">
+            <div class="footer-section">
+                <h3>线上书店</h3>
+                <p>致力于提供最优质的图书资源，让阅读改变生活。</p>
+            </div>
+        </div>
+    </div>
+</footer>
+
+<script>
+    // 图书数据 - 包含真实的封面图片链接
+    const books = [
+        {
+            id: 1,
+            title: "JavaScript高级程序设计",
+            author: "尼古拉斯·泽卡斯",
+            isbn: "9787115275790",
+            description: "本书是JavaScript超级畅销书的最新版，全面介绍了JavaScript语言的核心，以及Web浏览器中实现的遗留和标准的DOM。",
+            price: 99.80,
+            category: "tech",
+            coverUrl: "https://img3.doubanio.com/view/subject/l/public/s8958650.jpg",
+            tags: ["前端开发", "JavaScript", "编程"],
+            stock: 45
+        },
+        {
+            id: 2,
+            title: "百年孤独",
+            author: "加西亚·马尔克斯",
+            isbn: "9787544253994",
+            description: "魔幻现实主义文学的代表作，描写了布恩迪亚家族七代人的传奇故事，以及加勒比海沿岸小镇马孔多的百年兴衰。",
+            price: 39.50,
+            category: "fiction",
+            coverUrl: "https://img2.doubanio.com/view/subject/l/public/s6384944.jpg",
+            tags: ["经典文学", "魔幻现实主义", "诺贝尔奖"],
+            stock: 120
+        },
+        {
+            id: 3,
+            title: "人类简史",
+            author: "尤瓦尔·赫拉利",
+            isbn: "9787508647357",
+            description: "从认知革命、农业革命到科学革命，理清影响人类发展的重大脉络，挖掘人类文化、宗教、法律、国家产生的根源。",
+            price: 68.00,
+            category: "history",
+            coverUrl: "https://img1.doubanio.com/view/subject/l/public/s27814883.jpg",
+            tags: ["历史", "人类学", "社会学"],
+            stock: 89
+        },
+        {
+            id: 4,
+            title: "思考，快与慢",
+            author: "丹尼尔·卡尼曼",
+            isbn: "9787508633558",
+            description: "诺贝尔经济学奖得主丹尼尔·卡尼曼十年磨一剑之作，彻底颠覆你对思考的看法，将人类非理性落实到行为层面。",
+            price: 69.00,
+            category: "business",
+            coverUrl: "https://img3.doubanio.com/view/subject/l/public/s10307400.jpg",
+            tags: ["心理学", "行为经济学", "决策"],
+            stock: 76
+        },
+        {
+            id: 5,
+            title: "活着",
+            author: "余华",
+            isbn: "9787506365437",
+            description: "讲述一个人和他命运之间的友情，讲述了人是为了活着本身而活着，而不是为了活着之外的任何事物而活着。",
+            price: 28.00,
+            category: "fiction",
+            coverUrl: "https://img2.doubanio.com/view/subject/l/public/s29053580.jpg",
+            tags: ["中国文学", "小说", "余华"],
+            stock: 200
+        },
+        {
+            id: 6,
+            title: "Python编程：从入门到实践",
+            author: "埃里克·马瑟斯",
+            isbn: "9787115428028",
+            description: "一本针对所有层次的Python读者而作的Python入门书，从基本概念到完整项目开发，帮助读者快速掌握Python编程。",
+            price: 89.00,
+            category: "tech",
+            coverUrl: "https://img3.doubanio.com/view/subject/l/public/s28863714.jpg",
+            tags: ["Python", "编程", "入门"],
+            stock: 56
+        },
+        {
+            id: 7,
+            title: "原则",
+            author: "瑞·达利欧",
+            isbn: "9787508684031",
+            description: "华尔街投资大神瑞·达利欧白手起家40多年的生活与工作原则，多角度、立体阐述生活、工作、管理原则。",
+            price: 98.00,
+            category: "business",
+            coverUrl: "https://img3.doubanio.com/view/subject/l/public/s29623173.jpg",
+            tags: ["管理", "投资", "个人成长"],
+            stock: 43
+        },
+        {
+            id: 8,
+            title: "非暴力沟通",
+            author: "马歇尔·卢森堡",
+            isbn: "9787508095220",
+            description: "著名的马歇尔·卢森堡博士发现了一种沟通方式，依照它来谈话和聆听，能使人们情意相通，和谐相处。",
+            price: 49.00,
+            category: "selfhelp",
+            coverUrl: "https://img2.doubanio.com/view/subject/l/public/s9346487.jpg",
+            tags: ["沟通", "心理学", "人际关系"],
+            stock: 98
+        },
+        {
+            id: 9,
+            title: "明朝那些事儿",
+            author: "当年明月",
+            isbn: "9787506344791",
+            description: "以史料为基础，以年代和具体人物为主线，并加入了小说的笔法，对明朝十七帝和其他王公权贵进行全景展示。",
+            price: 158.00,
+            category: "history",
+            coverUrl: "https://img3.doubanio.com/view/subject/l/public/s3792523.jpg",
+            tags: ["明朝", "历史", "通俗历史"],
+            stock: 67
+        },
+        {
+            id: 10,
+            title: "时间简史",
+            author: "史蒂芬·霍金",
+            isbn: "9787535732309",
+            description: "探索时间和空间核心秘密的故事，是关于宇宙本性的最前沿知识，包括我们的宇宙图像、空间和时间、膨胀的宇宙等。",
+            price: 45.00,
+            category: "tech",
+            coverUrl: "https://img1.doubanio.com/view/subject/l/public/s1914861.jpg",
+            tags: ["科普", "物理学", "宇宙"],
+            stock: 34
+        },
+        {
+            id: 11,
+            title: "追风筝的人",
+            author: "卡勒德·胡赛尼",
+            isbn: "9787208061644",
+            description: "故事如此残忍而又美丽，作者以温暖细腻的笔法勾勒人性的本质与救赎，读来令人荡气回肠。",
+            price: 29.00,
+            category: "fiction",
+            coverUrl: "https://img3.doubanio.com/view/subject/l/public/s1727290.jpg",
+            tags: ["外国文学", "阿富汗", "人性"],
+            stock: 150
+        },
+        {
+            id: 12,
+            title: "影响力",
+            author: "罗伯特·西奥迪尼",
+            isbn: "9787115356017",
+            description: "心理学家罗伯特·西奥迪尼为我们解释了为什么有些人极具说服力，而我们总是容易上当受骗。",
+            price: 54.90,
+            category: "selfhelp",
+            coverUrl: "https://img3.doubanio.com/view/subject/l/public/s28463601.jpg",
+            tags: ["心理学", "营销", "社会行为"],
+            stock: 82
+        },
+        {
+            id: 13,
+            title: "三体",
+            author: "刘慈欣",
+            isbn: "9787536692930",
+            description: "中国科幻文学的里程碑之作，讲述了地球人类文明和三体文明的信息交流、生死搏杀及两个文明在宇宙中的兴衰历程。",
+            price: 68.00,
+            category: "fiction",
+            coverUrl: "https://img1.doubanio.com/view/subject/l/public/s2768378.jpg",
+            tags: ["科幻", "雨果奖", "中国科幻"],
+            stock: 110
+        },
+        {
+            id: 14,
+            title: "算法图解",
+            author: "巴尔加瓦",
+            isbn: "9787115447630",
+            description: "像小说一样有趣的算法入门书，示例丰富，图文并茂，以简明易懂的方式展现了算法和数据结构的关键概念。",
+            price: 59.00,
+            category: "tech",
+            coverUrl: "https://img3.doubanio.com/view/subject/l/public/s29358625.jpg",
+            tags: ["算法", "计算机", "数据结构"],
+            stock: 41
+        },
+        {
+            id: 15,
+            title: "穷查理宝典",
+            author: "查理·芒格",
+            isbn: "9787208095328",
+            description: "收录了查理·芒格的个人传记与投资哲学，以及过去20年来芒格主要的公开演讲和媒体访谈。",
+            price: 88.00,
+            category: "business",
+            coverUrl: "https://img3.doubanio.com/view/subject/l/public/s4669551.jpg",
+            tags: ["投资", "查理芒格", "商业"],
+            stock: 59
+        }
+    ];
+
+    // 渲染图书卡片
+    function renderBooks(booksToRender) {
+        const booksContainer = document.getElementById('booksContainer');
+        const noResults = document.getElementById('noResults');
+
+        // 清空容器
+        booksContainer.innerHTML = '';
+
+        // 如果没有图书，显示无结果提示
+        if (booksToRender.length === 0) {
+            noResults.style.display = 'block';
+            return;
+        }
+
+        // 隐藏无结果提示
+        noResults.style.display = 'none';
+
+        // 渲染图书卡片
+        booksToRender.forEach(book => {
+            const bookCard = document.createElement('div');
+            bookCard.className = 'book-card';
+            bookCard.dataset.category = book.category;
+
+
+            // 生成标签
+            const tags = book.tags.map(tag => `<span class="tag">${tag}</span>`).join('');
+
+            // 在 renderBooks() 函数中找到图书卡片生成的部分，修改为：
+            bookCard.innerHTML = `
+                <div class="book-cover">
+                    <img src="${book.coverUrl}" alt="${book.title}"
+                         onerror="this.onerror=null; this.src=''; this.parentElement.innerHTML='<div class=\"cover-placeholder\"><div><i class=\"fas fa-book\"></i><p>${book.title}</p></div></div>';">
+                </div>
+                <div class="book-info">
+                    <!-- 修改这里：为标题添加点击跳转 -->
+                    <h3 class="book-title" onclick="goToBookDetail(${book.id})" style="cursor: pointer; color: #3498db;">
+                        ${book.title}
+                    </h3>
+                    <p class="book-author"><i class="fas fa-user"></i> ${book.author}</p>
+                    <div class="book-tags">${tags}</div>
+                    <p class="book-description">${book.description}</p>
+                    <div class="book-footer">
+                        <div>
+                            <div class="book-price">¥${book.price.toFixed(2)}</div>
+                            <small style="color:#7f8c8d;">库存: ${book.stock}本</small>
+                        </div>
+                        <button class="buy-btn" onclick="addToCart(${book.id}, event)">
+                            <i class="fas fa-shopping-cart"></i> 加入购物车
+                        </button>
+                    </div>
+                </div>
+            `;
+
+            booksContainer.appendChild(bookCard);
+        });
+    }
+
+
+    // 搜索功能
+    function searchBooks() {
+        const searchInput = document.getElementById('searchInput');
+        const searchTerm = searchInput.value.toLowerCase().trim();
+
+        // 获取当前选中的分类
+        const activeCategory = document.querySelector('.category-btn.active').dataset.category;
+
+        // 筛选图书
+        let filteredBooks = books;
+
+        // 按分类筛选
+        if (activeCategory !== 'all') {
+            filteredBooks = filteredBooks.filter(book => book.category === activeCategory);
+        }
+
+        // 按搜索词筛选
+        if (searchTerm) {
+            filteredBooks = filteredBooks.filter(book =>
+                book.title.toLowerCase().includes(searchTerm) ||
+                book.author.toLowerCase().includes(searchTerm) ||
+                book.isbn.includes(searchTerm) ||
+                book.tags.some(tag => tag.toLowerCase().includes(searchTerm))
+            );
+        }
+
+        // 渲染筛选后的图书
+        renderBooks(filteredBooks);
+    }
+
+    // 分类筛选
+    function setupCategoryFilters() {
+        const categoryBtns = document.querySelectorAll('.category-btn');
+
+        categoryBtns.forEach(btn => {
+            btn.addEventListener('click', function() {
+                // 移除所有按钮的active类
+                categoryBtns.forEach(b => b.classList.remove('active'));
+                // 给当前点击的按钮添加active类
+                this.classList.add('active');
+                // 执行搜索
+                searchBooks();
+            });
+        });
+    }
+
+    // 添加到购物车（示例功能）
+    function addToCart(bookId) {
+        if(event){
+            event.stopPropagation();
+        }
+        const book = books.find(b => b.id === bookId);
+        alert(`已将《${book.title}》加入购物车！\n价格: ¥${book.price.toFixed(2)}`);
+    }
+    //跳转detail界面
+    function goToBookDetail(bookId) {
+        window.location.href = '/book/detail/'+bookId;
+    }
+
+    // 初始化页面
+    function initPage() {
+        // 初始渲染所有图书
+        renderBooks(books);
+
+        // 设置分类筛选
+        setupCategoryFilters();
+
+        // 设置搜索按钮事件
+        document.getElementById('searchBtn').addEventListener('click', searchBooks);
+
+        // 设置输入框回车搜索
+        document.getElementById('searchInput').addEventListener('keyup', function(event) {
+            if (event.key === 'Enter') {
+                searchBooks();
+            }
+        });
+    }
+
+    // 页面加载完成后初始化
+    document.addEventListener('DOMContentLoaded', initPage);
+</script>
+</body>
+</html>

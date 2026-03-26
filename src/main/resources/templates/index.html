@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="zh-CN" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>在线图书商城系统</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body {
+            padding-top: 50px;
+            font-family: 'Microsoft YaHei', sans-serif;
+            background-color: #f8f9fa;
+        }
+        .container {
+            max-width: 800px;
+        }
+        .welcome-box {
+            background: white;
+            padding: 40px;
+            border-radius: 10px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+            text-align: center;
+        }
+        .welcome-title {
+            color: #2c3e50;
+            margin-bottom: 30px;
+        }
+        .menu-list {
+            list-style: none;
+            padding: 0;
+        }
+        .menu-list li {
+            margin: 15px 0;
+        }
+        .menu-list a {
+            display: block;
+            padding: 15px 30px;
+            background-color: #007bff;
+            color: white;
+            text-decoration: none;
+            border-radius: 5px;
+            font-size: 18px;
+            transition: background-color 0.3s;
+        }
+        .menu-list a:hover {
+            background-color: #0056b3;
+            text-decoration: none;
+            color: white;
+        }
+        .construction-text {
+            color: #6c757d;
+            font-style: italic;
+            margin-bottom: 30px;
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <div class="welcome-box">
+        <h1 class="welcome-title">📚 欢迎来到线上书店</h1>
+        <p class="construction-text">系统正在建设中...</p>
+
+        <ul class="menu-list">
+            <li><a href="/user/register">📝 用户注册</a></li>
+            <li><a href="/user/login">🔐 用户登录</a></li>
+            <li><a href="/book/list">📖 浏览图书</a></li>
+            <li><a href="/cart">🛒 查看购物车</a></li>
+            <li><a href="/orders">📋 我的订单</a></li>
+        </ul>
+
+        <div class="mt-4 text-muted">
+            <small>如果遇到问题，请检查控制台日志或联系管理员</small>
+        </div>
+    </div>
+</div>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

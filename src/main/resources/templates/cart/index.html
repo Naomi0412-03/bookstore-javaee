@@ -1,0 +1,723 @@
+<!DOCTYPE html>
+<html lang="zh-CN" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>购物车 - 在线图书商城</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        body {
+            background-color: #f8f9fa;
+            font-family: 'Segoe UI', 'Microsoft YaHei', sans-serif;
+        }
+
+        .navbar {
+            background-color: #2c3e50;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        }
+
+        .navbar-brand {
+            font-weight: 700;
+            color: white !important;
+            font-size: 24px;
+        }
+
+        .navbar-brand i {
+            color: #3498db;
+            margin-right: 8px;
+        }
+
+        .navbar-nav .nav-link {
+            color: white !important;
+            font-weight: 500;
+            transition: color 0.3s;
+        }
+
+        .navbar-nav .nav-link:hover {
+            color: #3498db !important;
+        }
+
+        .navbar-nav .nav-link.active {
+            color: #3498db !important;
+            border-bottom: 2px solid #3498db;
+        }
+
+        .container {
+            max-width: 1200px;
+        }
+
+        .page-title {
+            color: #2c3e50;
+            margin-bottom: 30px;
+            padding-bottom: 15px;
+            border-bottom: 2px solid #eee;
+        }
+
+        .table th {
+            background-color: #f8f9fa;
+            font-weight: 600;
+            border-bottom: 2px solid #dee2e6;
+        }
+
+        .table td {
+            vertical-align: middle;
+        }
+
+        .cart-item-img {
+            width: 80px;
+            height: 100px;
+            object-fit: cover;
+            border-radius: 5px;
+            box-shadow: 0 3px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        .quantity-control {
+            width: 130px;
+        }
+
+        .quantity-control .btn {
+            width: 40px;
+        }
+
+        .quantity-control input {
+            text-align: center;
+            font-weight: 600;
+        }
+
+        .subtotal {
+            font-weight: 700;
+            color: #e74c3c;
+            font-size: 18px;
+        }
+
+        .card-footer {
+            background-color: white;
+            border-top: 2px solid #eee;
+        }
+
+        .selected-count {
+            color: #3498db;
+            font-weight: 600;
+        }
+
+        .total-amount {
+            color: #e74c3c;
+            font-size: 24px;
+            font-weight: 700;
+        }
+
+        .btn-checkout {
+            font-size: 18px;
+            padding: 12px 40px;
+            font-weight: 600;
+        }
+
+        .empty-cart {
+            padding: 80px 20px;
+            text-align: center;
+        }
+
+        .empty-cart i {
+            font-size: 80px;
+            color: #bdc3c7;
+            margin-bottom: 20px;
+        }
+
+        .empty-cart h3 {
+            color: #7f8c8d;
+            margin-bottom: 15px;
+        }
+
+        .empty-cart p {
+            color: #95a5a6;
+            margin-bottom: 30px;
+        }
+
+        /* 页脚样式 */
+        footer {
+            background-color: #2c3e50;
+            color: #ecf0f1;
+            padding: 40px 0 20px;
+            margin-top: 60px;
+        }
+
+        .footer-section h3 {
+            color: white;
+            margin-bottom: 20px;
+            font-size: 20px;
+        }
+
+        .footer-links {
+            list-style: none;
+            padding: 0;
+        }
+
+        .footer-links li {
+            margin-bottom: 10px;
+        }
+
+        .footer-links a {
+            color: #bdc3c7;
+            text-decoration: none;
+            transition: color 0.3s;
+        }
+
+        .footer-links a:hover {
+            color: #3498db;
+        }
+
+        .copyright {
+            text-align: center;
+            padding-top: 20px;
+            border-top: 1px solid #34495e;
+            color: #95a5a6;
+            font-size: 14px;
+        }
+
+        /* 响应式调整 */
+        @media (max-width: 768px) {
+            .cart-item-img {
+                width: 60px;
+                height: 80px;
+            }
+
+            .table thead {
+                display: none;
+            }
+
+            .table tbody tr {
+                display: block;
+                margin-bottom: 20px;
+                border: 1px solid #dee2e6;
+                border-radius: 8px;
+                padding: 15px;
+                background-color: white;
+            }
+
+            .table tbody td {
+                display: block;
+                text-align: right;
+                padding: 8px 0;
+                border: none;
+            }
+
+            .table tbody td::before {
+                content: attr(data-label);
+                float: left;
+                font-weight: bold;
+                color: #2c3e50;
+            }
+
+            .table tbody td:first-child {
+                text-align: left;
+            }
+        }
+
+        /* 加载动画 */
+        .loading {
+            display: none;
+            text-align: center;
+            padding: 40px;
+        }
+
+        .loading-spinner {
+            width: 3rem;
+            height: 3rem;
+        }
+
+        /* 确认删除模态框 */
+        .modal-content {
+            border-radius: 10px;
+        }
+
+        .modal-header {
+            background-color: #f8f9fa;
+            border-bottom: 1px solid #dee2e6;
+        }
+    </style>
+</head>
+<body>
+<!-- 导航栏 -->
+<nav class="navbar navbar-expand-lg navbar-dark sticky-top">
+    <div class="container">
+        <a class="navbar-brand" href="http://localhost:8080/">
+            <i class="fas fa-book"></i>线上书店
+        </a>
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="navbarNav">
+            <ul class="navbar-nav ms-auto">
+                <li class="nav-item">
+                    <a class="nav-link" href="http://localhost:8080/">首页</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link active" href="http://localhost:8080/book/kist">图书列表</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="http://localhost:8080/order/list">我的订单</a>
+                </li>
+            </ul>
+        </div>
+    </div>
+</nav>
+
+<div class="container mt-4">
+    <h2 class="page-title">
+        <i class="fas fa-shopping-cart me-2"></i>我的购物车
+    </h2>
+
+    <!-- 加载中提示 -->
+    <div id="loading" class="loading">
+        <div class="spinner-border text-primary loading-spinner" role="status">
+            <span class="visually-hidden">加载中...</span>
+        </div>
+        <p class="mt-3">正在加载购物车数据...</p>
+    </div>
+
+    <!-- 购物车为空 -->
+    <div id="emptyCart" class="empty-cart" style="display: none;">
+        <i class="fas fa-shopping-cart"></i>
+        <h3>购物车是空的</h3>
+        <p>快去挑选心仪的图书吧！</p>
+        <a href="http://localhost:8080/" class="btn btn-primary btn-lg">
+            <i class="fas fa-book me-2"></i>去逛逛
+        </a>
+    </div>
+
+    <!-- 购物车列表 -->
+    <div id="cartContent" style="display: none;">
+        <div class="table-responsive">
+            <table class="table">
+                <thead>
+                <tr>
+                    <th style="width: 5%;">
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" id="selectAll" onchange="toggleSelectAll(this.checked)">
+                            <label class="form-check-label" for="selectAll">全选</label>
+                        </div>
+                    </th>
+                    <th style="width: 40%;">商品信息</th>
+                    <th style="width: 15%;">单价</th>
+                    <th style="width: 15%;">数量</th>
+                    <th style="width: 15%;">小计</th>
+                    <th style="width: 10%;">操作</th>
+                </tr>
+                </thead>
+                <tbody id="cartItems">
+                <!-- 购物车项将通过JavaScript动态加载 -->
+                </tbody>
+            </table>
+        </div>
+
+        <!-- 结算栏 -->
+        <div class="card mt-4">
+            <div class="card-body">
+                <div class="row align-items-center">
+                    <div class="col-md-6">
+                        <p class="mb-2">已选择 <span id="selectedCount" class="selected-count">0</span> 件商品</p>
+                        <p class="mb-0">总金额: <span id="totalAmount" class="total-amount">¥0.00</span></p>
+                    </div>
+                    <div class="col-md-6 text-end">
+                        <button class="btn btn-outline-danger me-2" onclick="deleteSelected()">
+                            <i class="fas fa-trash me-1"></i>删除选中
+                        </button>
+                        <button class="btn btn-success btn-checkout" onclick="goToConfirm()">
+                            <i class="fas fa-credit-card me-2"></i>去结算
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- 确认删除模态框 -->
+<div class="modal fade" id="confirmDeleteModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">确认删除</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <p>确定要从购物车中删除选中的商品吗？</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">取消</button>
+                <button type="button" class="btn btn-danger" onclick="confirmDelete()">确定删除</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- 页脚 -->
+<footer>
+    <div class="container">
+        <div class="row">
+            <div class="col-md-4 mb-4">
+                <h3>线上书店</h3>
+                <p>致力于提供最优质的图书资源，让阅读改变生活。</p>
+            </div>
+            <div class="col-md-4 mb-4">
+                <h3>快速链接</h3>
+                <ul class="footer-links">
+                    <li><a href="http://localhost:8080/">返回首页</a></li>
+                    <li><a href="http://localhost:8080/book/list">图书列表</a></li>
+                    <li><a href="http://localhost:8080/order/list">我的订单</a></li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</footer>
+
+<!-- Bootstrap和jQuery -->
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+<script>
+    // 模拟购物车数据（实际开发中应从API获取）
+    let cartItems = [];
+    let selectedItems = new Set();
+
+    document.addEventListener('DOMContentLoaded', function() {
+        loadCart();
+    });
+
+    // 加载购物车数据
+    // 修改 loadCart 函数
+    async function loadCart() {
+        try {
+            showLoading(true);
+
+            // 调用购物车API
+            const response = await fetch('/api/cart', {
+                credentials: 'include'  // 重要：包含cookie/session
+            });
+
+            if (!response.ok) {
+                throw new Error(`HTTP错误: ${response.status}`);
+            }
+
+            const result = await response.json();
+            console.log('购物车API响应:', result);  // 调试用
+
+            if (result.success) {
+                const cartData = result.data;
+
+                if (cartData.items && cartData.items.length > 0) {
+                    // 更新购物车数据
+                    cartItems = cartData.items;
+                    displayCartItems();
+                    updateSummary();
+                    document.getElementById('emptyCart').style.display = 'none';
+                    document.getElementById('cartContent').style.display = 'block';
+                } else {
+                    // 购物车为空
+                    document.getElementById('emptyCart').style.display = 'block';
+                    document.getElementById('cartContent').style.display = 'none';
+                    cartItems = [];
+                }
+            } else {
+                // API调用失败
+                throw new Error(result.message || '获取购物车失败');
+            }
+        } catch (error) {
+            console.error('加载购物车失败:', error);
+            showAlert('加载购物车失败：' + error.message, 'danger');
+
+            // 显示空购物车状态
+            document.getElementById('emptyCart').style.display = 'block';
+            document.getElementById('cartContent').style.display = 'none';
+        } finally {
+            showLoading(false);
+        }
+    }
+
+    // 显示/隐藏加载动画
+    function showLoading(show) {
+        document.getElementById('loading').style.display = show ? 'block' : 'none';
+    }
+
+    // 显示购物车商品
+    function displayCartItems() {
+        const tbody = document.getElementById('cartItems');
+        let html = '';
+
+        cartItems.forEach(item => {
+            const isSelected = selectedItems.has(item.cartId);
+            html += `
+                    <tr>
+                        <td data-label="选择">
+                            <div class="form-check">
+                                <input type="checkbox" class="form-check-input item-checkbox"
+                                       value="${item.cartId}" ${isSelected ? 'checked' : ''}
+                                       onchange="toggleItemSelection(${item.cartId}, this.checked)">
+                            </div>
+                        </td>
+                        <td data-label="商品信息">
+                            <div class="d-flex">
+                                <img src="${item.bookCover}"
+                                     class="cart-item-img me-3" alt="${item.bookTitle}"
+                                     onerror="this.onerror=null; this.src=''; this.style.display='none';">
+                                <div>
+                                    <h6 class="mb-1">${item.bookTitle}</h6>
+                                    <p class="text-muted mb-0">${item.bookAuthor}</p>
+                                    <small class="text-muted">库存: ${item.stock}本</small>
+                                </div>
+                            </div>
+                        </td>
+                        <td data-label="单价">¥${item.bookPrice.toFixed(2)}</td>
+                        <td data-label="数量">
+                            <div class="input-group quantity-control">
+                                <button class="btn btn-outline-secondary"
+                                        onclick="updateQuantity(${item.cartId}, ${item.quantity - 1})"
+                                        ${item.quantity <= 1 ? 'disabled' : ''}>
+                                    <i class="fas fa-minus"></i>
+                                </button>
+                                <input type="number" class="form-control text-center"
+                                       value="${item.quantity}" min="1" max="${item.stock}"
+                                       onchange="updateQuantity(${item.cartId}, parseInt(this.value))">
+                                <button class="btn btn-outline-secondary"
+                                        onclick="updateQuantity(${item.cartId}, ${item.quantity + 1})"
+                                        ${item.quantity >= item.stock ? 'disabled' : ''}>
+                                    <i class="fas fa-plus"></i>
+                                </button>
+                            </div>
+                        </td>
+                        <td data-label="小计" class="subtotal">¥${item.subtotal.toFixed(2)}</td>
+                        <td data-label="操作">
+                            <button class="btn btn-outline-danger btn-sm"
+                                    onclick="removeItem(${item.cartId})">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                        </td>
+                    </tr>
+                `;
+        });
+
+        tbody.innerHTML = html;
+    }
+
+    // 更新商品数量
+    async function updateQuantity(cartId, newQuantity) {
+        // 验证数量
+        if (newQuantity < 1) return;
+
+        const item = cartItems.find(item => item.cartId === cartId);
+        if (!item) return;
+
+        // 检查库存
+        if (newQuantity > item.stock) {
+            alert(`库存不足，最多只能购买${item.stock}本`);
+            newQuantity = item.stock;
+        }
+
+        try {
+            // 模拟API调用
+            await new Promise(resolve => setTimeout(resolve, 300));
+
+            // 更新本地数据
+            item.quantity = newQuantity;
+            item.subtotal = item.bookPrice * newQuantity;
+
+            // 重新显示购物车
+            displayCartItems();
+            updateSummary();
+        } catch (error) {
+            console.error('更新数量失败:', error);
+            alert('更新数量失败，请重试');
+        }
+    }
+
+    // 删除单个商品
+    async function removeItem(cartId) {
+        if (!confirm('确定要从购物车中删除该商品吗？')) return;
+
+        try {
+            // 模拟API调用
+            await new Promise(resolve => setTimeout(resolve, 300));
+
+            // 从本地数据中删除
+            cartItems = cartItems.filter(item => item.cartId !== cartId);
+            selectedItems.delete(cartId);
+
+            if (cartItems.length > 0) {
+                displayCartItems();
+                updateSummary();
+            } else {
+                document.getElementById('emptyCart').style.display = 'block';
+                document.getElementById('cartContent').style.display = 'none';
+            }
+
+        } catch (error) {
+            console.error('删除商品失败:', error);
+            alert('删除商品失败，请重试');
+        }
+    }
+
+    // 切换单个商品选择
+    function toggleItemSelection(cartId, checked) {
+        if (checked) {
+            selectedItems.add(cartId);
+        } else {
+            selectedItems.delete(cartId);
+        }
+        updateSummary();
+        updateSelectAllCheckbox();
+    }
+
+    // 全选/取消全选
+    function toggleSelectAll(checked) {
+        selectedItems.clear();
+        if (checked) {
+            cartItems.forEach(item => {
+                selectedItems.add(item.cartId);
+            });
+        }
+
+        // 更新所有复选框状态
+        document.querySelectorAll('.item-checkbox').forEach(checkbox => {
+            checkbox.checked = checked;
+        });
+
+        updateSummary();
+    }
+
+    // 更新全选复选框状态
+    function updateSelectAllCheckbox() {
+        const allCheckboxes = document.querySelectorAll('.item-checkbox');
+        const selectAllCheckbox = document.getElementById('selectAll');
+
+        if (allCheckboxes.length === 0) {
+            selectAllCheckbox.checked = false;
+            selectAllCheckbox.indeterminate = false;
+            return;
+        }
+
+        const checkedCount = document.querySelectorAll('.item-checkbox:checked').length;
+
+        if (checkedCount === 0) {
+            selectAllCheckbox.checked = false;
+            selectAllCheckbox.indeterminate = false;
+        } else if (checkedCount === allCheckboxes.length) {
+            selectAllCheckbox.checked = true;
+            selectAllCheckbox.indeterminate = false;
+        } else {
+            selectAllCheckbox.checked = false;
+            selectAllCheckbox.indeterminate = true;
+        }
+    }
+
+    // 更新汇总信息
+    function updateSummary() {
+        let selectedCount = 0;
+        let totalAmount = 0;
+
+        cartItems.forEach(item => {
+            if (selectedItems.has(item.cartId)) {
+                selectedCount++;
+                totalAmount += item.subtotal;
+            }
+        });
+
+        document.getElementById('selectedCount').textContent = selectedCount;
+        document.getElementById('totalAmount').textContent = `¥${totalAmount.toFixed(2)}`;
+
+        // 更新全选复选框状态
+        updateSelectAllCheckbox();
+    }
+
+    // 删除选中商品
+    function deleteSelected() {
+        if (selectedItems.size === 0) {
+            alert('请先选择要删除的商品');
+            return;
+        }
+
+        // 显示确认模态框
+        const modal = new bootstrap.Modal(document.getElementById('confirmDeleteModal'));
+        modal.show();
+    }
+
+    // 确认删除
+    async function confirmDelete() {
+        try {
+            // 模拟API调用
+            await new Promise(resolve => setTimeout(resolve, 300));
+
+            // 从本地数据中删除选中的商品
+            cartItems = cartItems.filter(item => !selectedItems.has(item.cartId));
+            selectedItems.clear();
+
+            // 关闭模态框
+            bootstrap.Modal.getInstance(document.getElementById('confirmDeleteModal')).hide();
+
+            if (cartItems.length > 0) {
+                displayCartItems();
+                updateSummary();
+            } else {
+                document.getElementById('emptyCart').style.display = 'block';
+                document.getElementById('cartContent').style.display = 'none';
+            }
+        } catch (error) {
+            console.error('删除选中商品失败:', error);
+            alert('删除选中商品失败，请重试');
+        }
+    }
+
+    // 结算
+    function checkout() {
+        if (selectedItems.size === 0) {
+            alert('请先选择要结算的商品');
+            return;
+        }
+
+        // 在实际应用中，这里会跳转到结算页面或调用结算API
+        const selectedCount = selectedItems.size;
+        const totalAmount = Array.from(selectedItems)
+            .map(id => cartItems.find(item => item.cartId === id)?.subtotal || 0)
+            .reduce((sum, subtotal) => sum + subtotal, 0);
+
+        alert(`您选择了${selectedCount}件商品，总金额：¥${totalAmount.toFixed(2)}\n正在跳转到结算页面...`);
+
+    }
+    //结算
+    function goToConfirm() {
+        console.log("结算按钮被点击")
+        const selectedItems = getSelection();
+        console.log("选中商品", selectedItems);
+        if (selectedItems.length === 0) {
+            alert("请选择商品");
+            return;
+        }
+        window.location.href = 'http://localhost:8080/order/confirm';
+    }
+
+    //获取选中商品
+    function getSelectedItems() {
+        const selectedItems = [];
+        const checkboxes=document.querySelectorAll(`.item-checkbox:checked`);
+        checkboxes.forEach(checkboxes=>{
+            const cartId=parseInt(checkboxs.value);
+            const item=cartItems.find(item => item.cartId === cartId);
+            if (item){
+                selectedItems.push(item);
+            }
+        });
+        return selectedItems;
+
+    }
+
+    // 初始化Bootstrap组件
+    document.addEventListener('DOMContentLoaded', function() {
+        // 确保模态框正常工作
+        const confirmDeleteModal = document.getElementById('confirmDeleteModal');
+        if (confirmDeleteModal) {
+            new bootstrap.Modal(confirmDeleteModal);
+        }
+    });
+</script>
+</body>
+</html>

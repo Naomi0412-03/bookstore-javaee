@@ -1,0 +1,1076 @@
+<!DOCTYPE html>
+<html lang="zh-CN" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>订单确认 - 线上书店</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --primary-color: #2c3e50;
+            --secondary-color: #3498db;
+            --success-color: #27ae60;
+            --danger-color: #e74c3c;
+            --warning-color: #f39c12;
+        }
+
+        body {
+            background-color: #f8f9fa;
+            font-family: 'Segoe UI', 'Microsoft YaHei', sans-serif;
+            color: #333;
+        }
+
+        .navbar {
+            background-color: var(--primary-color);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        }
+
+        .navbar-brand {
+            font-weight: 700;
+            color: white !important;
+            font-size: 24px;
+        }
+
+        .navbar-brand i {
+            color: var(--secondary-color);
+            margin-right: 8px;
+        }
+
+        .navbar-nav .nav-link {
+            color: white !important;
+            font-weight: 500;
+            transition: color 0.3s;
+        }
+
+        .navbar-nav .nav-link:hover {
+            color: var(--secondary-color) !important;
+        }
+
+        .container {
+            max-width: 1200px;
+        }
+
+        .page-header {
+            background: linear-gradient(135deg, var(--primary-color) 0%, #34495e 100%);
+            color: white;
+            padding: 40px 0;
+            margin-bottom: 30px;
+            border-radius: 0 0 15px 15px;
+        }
+
+        .page-title {
+            font-size: 32px;
+            font-weight: 700;
+            margin-bottom: 10px;
+        }
+
+        .page-subtitle {
+            font-size: 16px;
+            opacity: 0.9;
+        }
+
+        .step-indicator {
+            display: flex;
+            justify-content: center;
+            margin: 40px 0;
+        }
+
+        .step {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            position: relative;
+            margin: 0 40px;
+        }
+
+        .step-number {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background-color: #e0e0e0;
+            color: #666;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            margin-bottom: 10px;
+            z-index: 1;
+        }
+
+        .step.active .step-number {
+            background-color: var(--secondary-color);
+            color: white;
+        }
+
+        .step.completed .step-number {
+            background-color: var(--success-color);
+            color: white;
+        }
+
+        .step-text {
+            font-size: 14px;
+            color: #666;
+        }
+
+        .step.active .step-text {
+            color: var(--secondary-color);
+            font-weight: 600;
+        }
+
+        .step::before {
+            content: '';
+            position: absolute;
+            top: 20px;
+            left: -40px;
+            width: 80px;
+            height: 2px;
+            background-color: #e0e0e0;
+            z-index: 0;
+        }
+
+        .step:first-child::before {
+            display: none;
+        }
+
+        .step.completed::before {
+            background-color: var(--success-color);
+        }
+
+        .section-card {
+            background: white;
+            border-radius: 10px;
+            padding: 25px;
+            margin-bottom: 25px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
+            border: 1px solid #eee;
+        }
+
+        .section-title {
+            font-size: 20px;
+            font-weight: 700;
+            color: var(--primary-color);
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #f0f0f0;
+            display: flex;
+            align-items: center;
+        }
+
+        .section-title i {
+            margin-right: 10px;
+            color: var(--secondary-color);
+        }
+
+        .order-item {
+            display: flex;
+            align-items: center;
+            padding: 15px;
+            border-bottom: 1px solid #f0f0f0;
+            transition: background-color 0.3s;
+        }
+
+        .order-item:hover {
+            background-color: #f9f9f9;
+        }
+
+        .order-item:last-child {
+            border-bottom: none;
+        }
+
+        .item-image {
+            width: 80px;
+            height: 100px;
+            border-radius: 5px;
+            overflow: hidden;
+            margin-right: 20px;
+        }
+
+        .item-image img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .item-info {
+            flex: 1;
+        }
+
+        .item-title {
+            font-weight: 600;
+            font-size: 16px;
+            margin-bottom: 5px;
+        }
+
+        .item-author {
+            color: #666;
+            font-size: 14px;
+            margin-bottom: 5px;
+        }
+
+        .item-meta {
+            display: flex;
+            gap: 15px;
+            font-size: 14px;
+            color: #888;
+        }
+
+        .item-price {
+            font-size: 18px;
+            font-weight: 700;
+            color: var(--danger-color);
+        }
+
+        .item-quantity {
+            font-size: 16px;
+            color: #333;
+        }
+
+        .item-subtotal {
+            font-size: 20px;
+            font-weight: 700;
+            color: var(--danger-color);
+        }
+
+        .address-card {
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            padding: 20px;
+            cursor: pointer;
+            transition: all 0.3s;
+            margin-bottom: 15px;
+        }
+
+        .address-card:hover {
+            border-color: var(--secondary-color);
+            background-color: #f8fbff;
+        }
+
+        .address-card.selected {
+            border-color: var(--success-color);
+            background-color: #f0f9f0;
+        }
+
+        .address-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+
+        .address-name {
+            font-weight: 600;
+            font-size: 16px;
+        }
+
+        .address-phone {
+            color: #666;
+        }
+
+        .address-detail {
+            color: #666;
+            line-height: 1.5;
+        }
+
+        .default-badge {
+            background-color: var(--success-color);
+            color: white;
+            padding: 3px 8px;
+            border-radius: 12px;
+            font-size: 12px;
+        }
+
+        .payment-method {
+            display: flex;
+            align-items: center;
+            padding: 15px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            margin-bottom: 15px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .payment-method:hover {
+            border-color: var(--secondary-color);
+            background-color: #f8fbff;
+        }
+
+        .payment-method.selected {
+            border-color: var(--success-color);
+            background-color: #f0f9f0;
+        }
+
+        .payment-icon {
+            width: 40px;
+            height: 40px;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-right: 15px;
+            font-size: 20px;
+        }
+
+        .payment-icon.alipay {
+            background-color: #1677ff;
+            color: white;
+        }
+
+        .payment-icon.wechat {
+            background-color: #07c160;
+            color: white;
+        }
+
+        .payment-icon.bank {
+            background-color: #ff6b35;
+            color: white;
+        }
+
+        .payment-info {
+            flex: 1;
+        }
+
+        .payment-name {
+            font-weight: 600;
+            font-size: 16px;
+        }
+
+        .payment-desc {
+            color: #666;
+            font-size: 14px;
+        }
+
+        .summary-card {
+            background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+            border-radius: 10px;
+            padding: 25px;
+            position: sticky;
+            top: 20px;
+        }
+
+        .summary-row {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 15px;
+            padding-bottom: 15px;
+            border-bottom: 1px solid #dee2e6;
+        }
+
+        .summary-row.total {
+            border-bottom: none;
+            padding-bottom: 0;
+            margin-bottom: 0;
+        }
+
+        .summary-label {
+            color: #666;
+        }
+
+        .summary-value {
+            font-weight: 600;
+        }
+
+        .total-amount {
+            font-size: 24px;
+            font-weight: 700;
+            color: var(--danger-color);
+        }
+
+        .btn-submit {
+            background: linear-gradient(135deg, var(--success-color) 0%, #2ecc71 100%);
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            font-size: 18px;
+            font-weight: 600;
+            border-radius: 8px;
+            width: 100%;
+            transition: all 0.3s;
+            margin-top: 20px;
+        }
+
+        .btn-submit:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(39, 174, 96, 0.3);
+        }
+
+        .btn-submit:disabled {
+            background: #cccccc;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+
+        .coupon-section {
+            margin-top: 20px;
+        }
+
+        .coupon-input {
+            display: flex;
+            gap: 10px;
+        }
+
+        .message-box {
+            background-color: #fff3cd;
+            border: 1px solid #ffeaa7;
+            border-radius: 8px;
+            padding: 15px;
+            margin-bottom: 20px;
+        }
+
+        .message-box i {
+            color: #f39c12;
+            margin-right: 10px;
+        }
+
+        .form-control:focus {
+            border-color: var(--secondary-color);
+            box-shadow: 0 0 0 0.2rem rgba(52, 152, 219, 0.25);
+        }
+
+        @media (max-width: 768px) {
+            .step {
+                margin: 0 20px;
+            }
+
+            .step::before {
+                width: 40px;
+                left: -20px;
+            }
+
+            .order-item {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+
+            .item-image {
+                margin-bottom: 15px;
+            }
+
+            .summary-card {
+                position: static;
+                margin-top: 30px;
+            }
+        }
+
+        .loading-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(255, 255, 255, 0.9);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 9999;
+            display: none;
+        }
+
+        .spinner {
+            width: 50px;
+            height: 50px;
+            border: 5px solid #f3f3f3;
+            border-top: 5px solid var(--secondary-color);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin-bottom: 20px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body>
+<!-- 导航栏 -->
+<nav class="navbar navbar-expand-lg navbar-dark sticky-top">
+    <div class="container">
+        <a class="navbar-brand" href="/">
+            <i class="fas fa-book"></i>线上书店
+        </a>
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="navbarNav">
+            <ul class="navbar-nav ms-auto">
+                <li class="nav-item">
+                    <a class="nav-link" href="/">首页</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="/book/list">图书列表</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="/cart">购物车</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link active" href="/order/list">我的订单</a>
+                </li>
+            </ul>
+        </div>
+    </div>
+</nav>
+
+<!-- 页面头部 -->
+<div class="page-header">
+    <div class="container">
+        <h1 class="page-title">订单确认</h1>
+        <p class="page-subtitle">请确认您的订单信息并完成支付</p>
+    </div>
+</div>
+
+<!-- 步骤指示器 -->
+<div class="container">
+    <div class="step-indicator">
+        <div class="step completed">
+            <div class="step-number">1</div>
+            <div class="step-text">购物车</div>
+        </div>
+        <div class="step active">
+            <div class="step-number">2</div>
+            <div class="step-text">订单确认</div>
+        </div>
+        <div class="step">
+            <div class="step-number">3</div>
+            <div class="step-text">支付</div>
+        </div>
+        <div class="step">
+            <div class="step-number">4</div>
+            <div class="step-text">完成</div>
+        </div>
+    </div>
+</div>
+
+<div class="container">
+    <div class="row">
+        <!-- 左侧主要内容 -->
+        <div class="col-lg-8">
+            <!-- 消息提示 -->
+            <div class="message-box">
+                <i class="fas fa-info-circle"></i>
+                <span>订单提交后30分钟内未支付将自动取消，请及时完成支付</span>
+            </div>
+
+            <!-- 收货地址 -->
+            <div class="section-card">
+                <h3 class="section-title">
+                    <i class="fas fa-map-marker-alt"></i>收货地址
+                </h3>
+                <div id="addressList">
+                    <!-- 地址将通过JavaScript动态生成 -->
+                </div>
+                <button class="btn btn-outline-primary mt-3" onclick="showAddressModal()">
+                    <i class="fas fa-plus"></i> 添加新地址
+                </button>
+            </div>
+
+            <!-- 订单商品 -->
+            <div class="section-card">
+                <h3 class="section-title">
+                    <i class="fas fa-shopping-cart"></i>订单商品
+                </h3>
+                <div id="orderItems">
+                    <!-- 商品将通过JavaScript动态生成 -->
+                </div>
+            </div>
+
+            <!-- 支付方式 -->
+            <div class="section-card">
+                <h3 class="section-title">
+                    <i class="fas fa-credit-card"></i>支付方式
+                </h3>
+                <div id="paymentMethods">
+                    <!-- 支付方式将通过JavaScript动态生成 -->
+                </div>
+            </div>
+
+        </div>
+
+        <!-- 右侧订单摘要 -->
+        <div class="col-lg-4">
+            <div class="summary-card">
+                <h4 class="section-title mb-4">
+                    <i class="fas fa-receipt"></i>订单摘要
+                </h4>
+
+                <div class="summary-row">
+                    <span class="summary-label">商品总价</span>
+                    <span class="summary-value" id="itemTotal">¥0.00</span>
+                </div>
+
+                <div class="summary-row total mt-4 pt-3">
+                    <span class="summary-label">应付总额</span>
+                    <span class="total-amount" id="totalAmount">¥0.00</span>
+                </div>
+
+                <button class="btn-submit" id="submitOrderBtn" onclick="submitOrder()">
+                    <i class="fas fa-lock"></i> 提交订单
+                </button>
+
+                <p class="text-muted mt-3 small">
+                    <i class="fas fa-shield-alt"></i> 您的支付信息将使用加密传输，确保安全
+                </p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- 加载遮罩 -->
+<div class="loading-overlay" id="loadingOverlay">
+    <div class="spinner"></div>
+    <p>正在提交订单，请稍候...</p>
+</div>
+
+<!-- 添加地址模态框 -->
+<div class="modal fade" id="addressModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">添加收货地址</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <form id="addressForm">
+                    <div class="mb-3">
+                        <label class="form-label">收货人姓名 *</label>
+                        <input type="text" class="form-control" id="recipientName" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">手机号码 *</label>
+                        <input type="tel" class="form-control" id="recipientPhone" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">所在地区 *</label>
+                        <div class="row">
+                            <div class="col-6">
+                                <select class="form-control" id="province" required>
+                                    <option value="">请选择省份</option>
+                                </select>
+                            </div>
+                            <div class="col-6">
+                                <select class="form-control" id="city" required>
+                                    <option value="">请选择城市</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">详细地址 *</label>
+                        <textarea class="form-control" id="detailAddress" rows="2" required></textarea>
+                    </div>
+                    <div class="mb-3 form-check">
+                        <input type="checkbox" class="form-check-input" id="setDefault">
+                        <label class="form-check-label">设为默认地址</label>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">取消</button>
+                <button type="button" class="btn btn-primary" onclick="saveAddress()">保存地址</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Bootstrap和jQuery -->
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+<script>
+    // 订单数据
+    let orderData = {
+        items: [],
+        selectedAddress: null,
+        selectedPayment: 'alipay',
+        coupon: null,
+        buyerNote: '',
+        summary: {
+            itemTotal: 0,
+            shippingFee: 0,
+            discount: 0,
+            totalAmount: 0
+        }
+    };
+
+    // 模拟数据（实际应从API获取）
+    const mockAddresses = [
+        {
+            id: 1,
+            name: '张三',
+            phone: '13800138000',
+            province: '北京市',
+            city: '北京市',
+            detail: '海淀区中关村大街1号科技大厦A座1001室',
+            isDefault: true
+        },
+        {
+            id: 2,
+            name: '张三',
+            phone: '13800138001',
+            province: '上海市',
+            city: '上海市',
+            detail: '浦东新区张江高科技园区碧波路500号',
+            isDefault: false
+        }
+    ];
+
+    const mockPaymentMethods = [
+        { id: 'alipay', name: '支付宝支付', desc: '推荐支付宝用户使用', icon: 'fab fa-alipay' },
+        { id: 'wechat', name: '微信支付', desc: '推荐微信用户使用', icon: 'fab fa-weixin' },
+        { id: 'bank', name: '银行卡支付', desc: '支持储蓄卡、信用卡', icon: 'fas fa-credit-card' }
+    ];
+
+    // 页面加载时初始化
+    document.addEventListener('DOMContentLoaded', function() {
+        loadOrderData();
+        loadAddresses();
+        loadPaymentMethods();
+        calculateSummary();
+
+        // 从URL参数获取订单类型（直接购买或从购物车）
+        const urlParams = new URLSearchParams(window.location.search);
+        const bookId = urlParams.get('bookId');
+        const quantity = urlParams.get('quantity');
+
+        if (bookId && quantity) {
+            // 直接购买模式
+            loadDirectPurchase(bookId, quantity);
+        } else {
+            // 购物车模式
+            loadCartItems();
+        }
+    });
+
+    // 加载订单数据
+    function loadOrderData() {
+        // 这里应该调用API获取订单数据
+        // 暂时使用模拟数据
+        orderData.items = [
+            {
+                id: 1,
+                bookId: 1,
+                title: 'JavaScript高级程序设计',
+                author: '尼古拉斯·泽卡斯',
+                image: 'https://img3.doubanio.com/view/subject/l/public/s8958650.jpg',
+                price: 99.80,
+                quantity: 1,
+                subtotal: 99.80
+            },
+            {
+                id: 2,
+                bookId: 2,
+                title: '百年孤独',
+                author: '加西亚·马尔克斯',
+                image: 'https://img2.doubanio.com/view/subject/l/public/s6384944.jpg',
+                price: 39.50,
+                quantity: 2,
+                subtotal: 79.00
+            }
+        ];
+
+        orderData.selectedAddress = mockAddresses[0];
+        renderOrderItems();
+    }
+
+    // 加载直接购买的商品
+    function loadDirectPurchase(bookId, quantity) {
+        // 根据bookId查询图书信息
+        // 这里应该调用API获取图书详情
+        const book = {
+            id: 1,
+            bookId: parseInt(bookId),
+            title: 'JavaScript高级程序设计',
+            author: '尼古拉斯·泽卡斯',
+            image: 'https://img3.doubanio.com/view/subject/l/public/s8958650.jpg',
+            price: 99.80,
+            quantity: parseInt(quantity) || 1,
+            subtotal: 99.80 * (parseInt(quantity) || 1)
+        };
+
+        orderData.items = [book];
+        renderOrderItems();
+        calculateSummary();
+    }
+
+    // 加载购物车商品
+    function loadCartItems() {
+        // 这里应该调用购物车API获取选中商品
+        // 暂时使用模拟数据
+        console.log('从购物车加载商品...');
+    }
+
+    // 渲染订单商品
+    function renderOrderItems() {
+        const container = document.getElementById('orderItems');
+        if (!container) return;
+
+        if (orderData.items.length === 0) {
+            container.innerHTML = `
+                    <div class="text-center py-5">
+                        <i class="fas fa-shopping-cart fa-3x text-muted mb-3"></i>
+                        <p class="text-muted">暂无商品</p>
+                        <a href="/book/list" class="btn btn-primary">去选购商品</a>
+                    </div>
+                `;
+            return;
+        }
+
+        let html = '';
+        orderData.items.forEach(item => {
+            html += `
+                    <div class="order-item">
+                        <div class="item-image">
+                            <img src="${item.image}" alt="${item.title}"
+                                 onerror="this.onerror=null; this.src='https://via.placeholder.com/80x100?text=Book';">
+                        </div>
+                        <div class="item-info">
+                            <div class="item-title">${item.title}</div>
+                            <div class="item-author">${item.author}</div>
+                            <div class="item-meta">
+                                <span class="item-price">¥${item.price.toFixed(2)}</span>
+                                <span>×</span>
+                                <span class="item-quantity">${item.quantity}</span>
+                            </div>
+                        </div>
+                        <div class="item-subtotal">¥${item.subtotal.toFixed(2)}</div>
+                    </div>
+                `;
+        });
+
+        container.innerHTML = html;
+    }
+
+    // 加载收货地址
+    function loadAddresses() {
+        const container = document.getElementById('addressList');
+        if (!container || mockAddresses.length === 0) return;
+
+        let html = '';
+        mockAddresses.forEach(address => {
+            const isSelected = orderData.selectedAddress && orderData.selectedAddress.id === address.id;
+            html += `
+                    <div class="address-card ${isSelected ? 'selected' : ''}"
+                         onclick="selectAddress(${address.id})">
+                        <div class="address-header">
+                            <span class="address-name">${address.name}</span>
+                            <span class="address-phone">${address.phone}</span>
+                            ${address.isDefault ? '<span class="default-badge">默认</span>' : ''}
+                        </div>
+                        <div class="address-detail">
+                            ${address.province}${address.city}${address.detail}
+                        </div>
+                    </div>
+                `;
+        });
+
+        container.innerHTML = html;
+    }
+
+    // 选择收货地址
+    function selectAddress(addressId) {
+        const address = mockAddresses.find(addr => addr.id === addressId);
+        if (address) {
+            orderData.selectedAddress = address;
+            loadAddresses();
+
+            // 根据地址计算运费（示例逻辑）
+            if (address.province.includes('北京') || address.province.includes('上海')) {
+                orderData.summary.shippingFee = 0; // 包邮
+            } else {
+                orderData.summary.shippingFee = 10.00; // 运费10元
+            }
+
+            calculateSummary();
+        }
+    }
+
+    // 加载支付方式
+    function loadPaymentMethods() {
+        const container = document.getElementById('paymentMethods');
+        if (!container) return;
+
+        let html = '';
+        mockPaymentMethods.forEach(method => {
+            const isSelected = orderData.selectedPayment === method.id;
+            html += `
+                    <div class="payment-method ${isSelected ? 'selected' : ''}"
+                         onclick="selectPayment('${method.id}')">
+                        <div class="payment-icon ${method.id}">
+                            <i class="${method.icon}"></i>
+                        </div>
+                        <div class="payment-info">
+                            <div class="payment-name">${method.name}</div>
+                            <div class="payment-desc">${method.desc}</div>
+                        </div>
+                        <div class="payment-check">
+                            <i class="fas fa-check-circle ${isSelected ? 'text-success' : 'text-muted'}"></i>
+                        </div>
+                    </div>
+                `;
+        });
+
+        container.innerHTML = html;
+    }
+
+    // 选择支付方式
+    function selectPayment(paymentId) {
+        orderData.selectedPayment = paymentId;
+        loadPaymentMethods();
+    }
+
+    // 显示添加地址模态框
+    function showAddressModal() {
+        const modal = new bootstrap.Modal(document.getElementById('addressModal'));
+        modal.show();
+    }
+
+    // 保存地址
+    function saveAddress() {
+        // 这里应该调用API保存地址
+        // 暂时只是关闭模态框
+        const modal = bootstrap.Modal.getInstance(document.getElementById('addressModal'));
+        modal.hide();
+        alert('地址保存成功！');
+    }
+
+
+
+    // 计算订单摘要
+    function calculateSummary() {
+        // 计算商品总价
+        orderData.summary.itemTotal = orderData.items.reduce((sum, item) => sum + item.subtotal, 0);
+
+        // 计算折扣
+        if (orderData.coupon) {
+            if (typeof orderData.coupon.discount === 'number') {
+                orderData.summary.discount = orderData.coupon.discount;
+            }
+        } else {
+            orderData.summary.discount = 0;
+        }
+
+        // 计算应付总额
+        orderData.summary.totalAmount =
+            orderData.summary.itemTotal +
+            orderData.summary.shippingFee -
+            orderData.summary.discount;
+
+        // 更新显示
+        document.getElementById('itemTotal').textContent = `¥${orderData.summary.itemTotal.toFixed(2)}`;
+        document.getElementById('shippingFee').textContent = `¥${orderData.summary.shippingFee.toFixed(2)}`;
+        document.getElementById('discount').textContent = `-¥${orderData.summary.discount.toFixed(2)}`;
+        document.getElementById('totalAmount').textContent = `¥${orderData.summary.totalAmount.toFixed(2)}`;
+
+        // 更新提交按钮状态
+        updateSubmitButton();
+    }
+
+    // 更新提交按钮状态
+    function updateSubmitButton() {
+        const btn = document.getElementById('submitOrderBtn');
+        if (!btn) return;
+
+        const hasItems = orderData.items.length > 0;
+        const hasAddress = orderData.selectedAddress !== null;
+        const hasPayment = orderData.selectedPayment !== null;
+
+        if (hasItems && hasAddress && hasPayment) {
+            btn.disabled = false;
+            btn.innerHTML = '<i class="fas fa-lock"></i> 提交订单';
+        } else {
+            btn.disabled = true;
+            if (!hasItems) {
+                btn.innerHTML = '<i class="fas fa-exclamation-triangle"></i> 请添加商品';
+            } else if (!hasAddress) {
+                btn.innerHTML = '<i class="fas fa-exclamation-triangle"></i> 请选择收货地址';
+            } else if (!hasPayment) {
+                btn.innerHTML = '<i class="fas fa-exclamation-triangle"></i> 请选择支付方式';
+            }
+        }
+    }
+
+    // 提交订单
+    function submitOrder() {
+        // 收集订单数据
+        const buyerNote = document.getElementById('buyerNote').value;
+        orderData.buyerNote = buyerNote;
+
+        // 验证必要信息
+        if (!orderData.selectedAddress) {
+            alert('请选择收货地址');
+            return;
+        }
+
+        if (!orderData.selectedPayment) {
+            alert('请选择支付方式');
+            return;
+        }
+
+        // 显示加载遮罩
+        document.getElementById('loadingOverlay').style.display = 'flex';
+
+        // 模拟API调用延迟
+        setTimeout(() => {
+            // 这里应该调用API提交订单
+            console.log('提交订单数据:', orderData);
+
+            // 模拟订单创建成功
+            const orderId = Math.floor(Math.random() * 1000000);
+
+            // 隐藏加载遮罩
+            document.getElementById('loadingOverlay').style.display = 'none';
+
+            // 跳转到支付页面或订单详情页
+            alert(`订单创建成功！订单号：${orderId}`);
+            window.location.href = `/order/pay?orderId=${orderId}`;
+
+            // 在实际应用中，应该是：
+            // window.location.href = `/order/pay/${orderId}`;
+        }, 1500);
+    }
+
+    // 初始化省份选择（简化版）
+    function initProvinceSelect() {
+        const provinces = ['北京市', '上海市', '广东省', '浙江省', '江苏省', '四川省'];
+        const provinceSelect = document.getElementById('province');
+
+        provinces.forEach(province => {
+            const option = document.createElement('option');
+            option.value = province;
+            option.textContent = province;
+            provinceSelect.appendChild(option);
+        });
+
+        // 当省份改变时加载城市
+        provinceSelect.addEventListener('change', function() {
+            const citySelect = document.getElementById('city');
+            citySelect.innerHTML = '<option value="">请选择城市</option>';
+
+            // 简化版城市数据
+            const cities = {
+                '北京市': ['北京市'],
+                '上海市': ['上海市'],
+                '广东省': ['广州市', '深圳市', '珠海市'],
+                '浙江省': ['杭州市', '宁波市', '温州市'],
+                '江苏省': ['南京市', '苏州市', '无锡市'],
+                '四川省': ['成都市', '绵阳市', '德阳市']
+            };
+
+            const selectedCities = cities[this.value] || [];
+            selectedCities.forEach(city => {
+                const option = document.createElement('option');
+                option.value = city;
+                option.textContent = city;
+                citySelect.appendChild(option);
+            });
+        });
+    }
+
+    // 页面加载完成后初始化省份选择
+    document.addEventListener('DOMContentLoaded', initProvinceSelect);
+</script>
+</body>
+</html>

@@ -1,0 +1,253 @@
+<!DOCTYPE html>
+<html lang="zh-CN" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title th:text="${book != null ? book.title + ' - 图书详情' : '图书不存在'}">图书详情</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+    <!-- 添加Font Awesome图标库 -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+<nav class="navbar navbar-light bg-light">
+    <div class="container">
+        <a class="navbar-brand" href="/">📚 线上书店</a>
+        <a href="/book/list" class="btn btn-outline-secondary">返回列表</a>
+    </div>
+</nav>
+
+<div class="container mt-4" th:if="${book != null}">
+    <div class="row">
+        <!-- 左侧：图书图片 -->
+        <div class="col-md-4">
+            <img th:src="${book.coverImage != null ? book.coverImage : '/images/default-book.jpg'}"
+                 class="img-fluid rounded shadow"
+                 style="height: 400px; object-fit: cover;"
+                 th:alt="${book.title}">
+        </div>
+
+        <!-- 右侧：图书信息 -->
+        <div class="col-md-8">
+            <h2 th:text="${book.title}"></h2>
+            <p class="text-muted">
+                <strong>作者：</strong><span th:text="${book.author}"></span> |
+                <strong>ISBN：</strong><span th:text="${book.isbn != null ? book.isbn : '暂无'}"></span>
+            </p>
+
+            <div class="alert alert-info">
+                <h3 class="text-danger mb-0" th:text="'¥' + ${#numbers.formatDecimal(book.price, 1, 2)}"></h3>
+            </div>
+
+            <!-- 库存信息 -->
+            <div class="mb-3">
+                <span th:if="${book.stock > 0}" class="badge bg-success fs-6">有货</span>
+                <span th:if="${book.stock <= 0}" class="badge bg-secondary fs-6">缺货</span>
+                <span class="ms-2">库存：<span th:text="${book.stock}"></span> 本</span>
+            </div>
+
+            <!-- 分类 -->
+            <div class="mb-3">
+                <strong>分类：</strong>
+                <span th:text="${book.categoryName != null ? book.categoryName : '未分类'}"></span>
+            </div>
+
+            <!-- 购买数量 -->
+            <div class="mb-4">
+                <label class="form-label"><strong>购买数量：</strong></label>
+                <div class="input-group" style="width: 150px;">
+                    <button class="btn btn-outline-secondary" type="button" id="decreaseBtn">-</button>
+                    <input type="number" class="form-control text-center" id="quantity" value="1" min="1" th:max="${book.stock}">
+                    <button class="btn btn-outline-secondary" type="button" id="increaseBtn">+</button>
+                </div>
+                <small class="text-muted" th:if="${book.stock > 0}">最多可购买 <span th:text="${book.stock}"></span> 本</small>
+            </div>
+
+            <!-- 操作按钮 -->
+            <div class="d-grid gap-2 d-md-block">
+                <button class="btn btn-primary btn-lg" id="addToCartBtn" th:disabled="${book.stock <= 0}">
+                    加入购物车
+                </button>
+                <button class="btn btn-success btn-lg ms-2" id="buyNowBtn" th:disabled="${book.stock <= 0}">
+                    立即购买
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 图书描述 -->
+    <div class="mt-5">
+        <h4>图书描述</h4>
+        <div class="card">
+            <div class="card-body">
+                <p th:text="${book.description != null ? book.description : '暂无详细描述'}"></p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- 图书不存在时显示 -->
+<div class="container mt-5 text-center" th:if="${book == null}">
+    <h3 class="text-muted">图书不存在</h3>
+    <p>您访问的图书可能已被删除或不存在</p>
+    <a href="/book/list" class="btn btn-primary">返回图书列表</a>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+<!-- 先定义showAlert函数 -->
+<script>
+    // 显示消息的函数
+    function showAlert(message, type) {
+        // 创建一个消息框
+        const alertDiv = document.createElement('div');
+        alertDiv.className = `alert alert-${type} alert-dismissible fade show position-fixed`;
+        alertDiv.style.cssText = `
+            top: 20px;
+            right: 20px;
+            z-index: 1050;
+            min-width: 300px;
+        `;
+        alertDiv.innerHTML = `
+            ${message}
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        `;
+
+        document.body.appendChild(alertDiv);
+
+        // 3秒后自动移除
+        setTimeout(() => {
+            if (alertDiv.parentNode) {
+                alertDiv.parentNode.removeChild(alertDiv);
+            }
+        }, 3000);
+    }
+
+    // 更新购物车数量显示
+    function updateCartCount() {
+        // 如果你有购物车数量显示元素
+        const cartCountElement = document.getElementById('cartCount');
+        if (cartCountElement) {
+            // 调用API获取购物车数量
+            fetch('/api/cart/count', { credentials: 'include' })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        cartCountElement.textContent = data.data;
+                    }
+                });
+        }
+    }
+</script>
+
+<script th:inline="javascript">
+    /*<![CDATA[*/
+    // 获取图书ID - 使用Thymeleaf内联语法
+    const bookId = /*[[${book != null ? book.id : null}]]*/ null;
+    const maxStock = /*[[${book != null ? book.stock : 0}]]*/ 0;
+
+    console.log('图书详情页初始化，bookId:', bookId, 'maxStock:', maxStock);
+
+    // 只在有图书时初始化事件监听器
+    if (bookId !== null) {
+        console.log('初始化事件监听器...');
+
+        // 数量控制
+        document.getElementById('decreaseBtn').addEventListener('click', function() {
+            console.log('减少数量');
+            const input = document.getElementById('quantity');
+            let quantity = parseInt(input.value) - 1;
+            if (quantity < 1) quantity = 1;
+            input.value = quantity;
+        });
+
+        document.getElementById('increaseBtn').addEventListener('click', function() {
+            console.log('增加数量');
+            const input = document.getElementById('quantity');
+            let quantity = parseInt(input.value) + 1;
+            if (maxStock && quantity > maxStock) quantity = maxStock;
+            input.value = quantity;
+        });
+
+        // 加入购物车 - 简化版本（先确保能执行）
+        document.getElementById('addToCartBtn').addEventListener('click', async function() {
+            console.log('=== 加入购物车按钮被点击 ===');
+
+            const quantity = document.getElementById('quantity').value;
+            const button = this;
+
+            console.log('参数：bookId=', bookId, 'quantity=', quantity);
+
+            // 先简单测试，不调用API
+            // alert('准备添加图书ID=' + bookId + '，数量=' + quantity + ' 到购物车');
+
+            // 保存原始文本
+            const originalText = button.innerHTML;
+
+            // 显示加载状态
+            button.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>处理中...';
+            button.disabled = true;
+
+            // // 模拟处理时间
+            // setTimeout(() => {
+            //     // 恢复按钮
+            //     button.innerHTML = originalText;
+            //     button.disabled = false;
+            //
+            //     // 测试成功
+            //     showAlert('测试：已添加到购物车', 'success');
+            // }, 1000);
+
+            // 暂时注释掉API调用，先测试按钮功能
+
+            try {
+                const response = await fetch(`/api/cart/add?bookId=${bookId}&quantity=${quantity}`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    credentials: 'include'
+                });
+
+                if (!response.ok) {
+                    throw new Error('网络响应不正常');
+                }
+
+                const result = await response.json();
+
+                if (result.success) {
+                    showAlert('已成功加入购物车！', 'success');
+                    updateCartCount();
+                } else {
+                    showAlert('添加失败：' + result.message, 'danger');
+                }
+            } catch (error) {
+                console.error('添加购物车错误:', error);
+                showAlert('网络错误：' + error.message, 'danger');
+            } finally {
+                button.innerHTML = originalText;
+                button.disabled = false;
+            }
+
+        });
+
+        // 立即购买
+        document.getElementById('buyNowBtn').addEventListener('click', function() {
+            console.log('立即购买按钮被点击');
+            const quantity = document.getElementById('quantity').value;
+            alert('测试：立即购买，数量=' + quantity);
+            // window.location.href = `/order/confirm?bookId=${bookId}&quantity=${quantity}`;
+        });
+
+        console.log('事件监听器初始化完成');
+    } else {
+        console.log('图书不存在，禁用按钮');
+        // 图书不存在时，禁用所有按钮
+        const buttons = document.querySelectorAll('#addToCartBtn, #buyNowBtn, #decreaseBtn, #increaseBtn');
+        buttons.forEach(button => {
+            button.disabled = true;
+        });
+    }
+    /*]]>*/
+</script>
+</body>
+</html>
